@@ -5,4 +5,12 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[lib]
+name = "polyregr"
+path = "src/lib.rs"
+
+[[bin]]
+name = "polyregrtest"
+path = "src/bin/main.rs" # replace bin.rs with name of your file
+
 [dependencies]

@@ -1,20 +1,23 @@
-type Matrix = Vec<Vec<f64>>;
+mod matrix;
 
-struct DataPoint {
-    x: f64,
-    y: f64,
+pub type Matrix = Vec<Vec<f64>>;
+#[derive(Debug)]
+pub struct DataPoint {
+    pub x: f64,
+    pub y: f64,
+}
+#[derive(Debug)]
+pub struct PolynomialRegression {
+    pub data: Vec<DataPoint>,
+    pub degree: usize,
+    pub matrix: Matrix,
+    pub left_matrix: Matrix,
+    pub right_matrix: Vec<f64>,
 }
 
-struct PolynomialRegression {
-    data: Vec<DataPoint>,
-    degree: u32,
-    matrix: Matrix,
-    left_matrix: Matrix,
-    right_matrix: Matrix,
-}
 
 impl PolynomialRegression {
-    fn new(data_points: Vec<DataPoint>, degree: u32) -> Self {
+    pub fn new(data_points: Vec<DataPoint>, degree: usize) -> Self {
         PolynomialRegression {
             data: data_points,
             degree,
@@ -31,9 +34,8 @@ impl PolynomialRegression {
      * @returns {number}
      */
 
-    fn sumX(&self, power: u32) -> f64 {
-        let sum = 0.0;
-        sum
+    fn sumX(&self, power: i32) -> f64 {
+        self.data.iter().map(|d| d.x.powi(power)).sum()
     }
 
     /**
@@ -42,44 +44,42 @@ impl PolynomialRegression {
      * @param power
      * @returns {number}
      */
-    fn sumXTimesY(&self, power: u32) -> f64 {
-        let sum = 0.0;
-        sum
+    fn sumXTimesY(&self, power: i32) -> f64 {
+        self.data.iter().map(|d| d.x.powi(power) * d.y).sum()
     }
 
-     /**
+    /**
      * Sums up all Y's raised to a power
      * @param anyData
      * @param power
      * @returns {number}
      */
-    fn sumY (&self, power: u32)->f64 {
-        let sum = 0.0;
-        return sum;
+    fn sumY(&self, power: i32) -> f64 {
+        self.data.iter().map(|d| d.y.powi(power)).sum()
     }
 
     /**
      * generate the left matrix
      */
-    fn generateLeftMatrix(&mut self){
-        /*
-        for (let i = 0; i <= this.degree; i++) {
-            this.leftMatrix.push([]);
-            for (let j = 0; j <= this.degree; j++) {
-                if (i === 0 && j === 0) {
-                    this.leftMatrix[i][j] = this.data.length;
+    fn generateLeftMatrix(&mut self) {
+       
+
+        for i in 0..=self.degree {
+            self.left_matrix.push(Vec::new());
+            for j in 0..=self.degree {
+                if i == 0 && j == 0 {
+                    self.left_matrix[i].push( self.data.len() as f64);
                 } else {
-                    this.leftMatrix[i][j] = this.sumX(this.data, (i + j));
+                    let v = self.sumX((i + j) as i32);
+                    self.left_matrix[i].push(v);
                 }
             }
         }
-        */
     }
-    
     /**
      * generates the right hand matrix
      */
-    fn generateRightMatrix(&mut self){
+    fn generateRightMatrix(&mut self) {
         /*
         for (let i = 0; i <= this.degree; i++) {
             if (i === 0) {
@@ -89,24 +89,33 @@ impl PolynomialRegression {
             }
         }
         */
+        for i in 0..=self.degree {
+             
+                if i == 0   {
+                    self.right_matrix.push(self.sumY(1) as f64);
+                } else {
+                    self.right_matrix.push(self.sumXTimesY(i as i32) as f64);
+
+                }
+            
+        }
     }
-    
-    
     /**
      * gets the terms for a polynomial
      * @returns {*}
      */
-    fn getTerms(){
-        //return this.matrix.gaussianJordanElimination(this.leftMatrix, this.rightMatrix);
+    pub fn getTerms(&mut self) -> Vec<f64> {
+        self.generateLeftMatrix();
+        self.generateRightMatrix();
+        matrix::gaussianJordanElimination(&self.left_matrix, &self.right_matrix)
     }
-    
     /**
      * Predicts the Y value of a data set based on polynomial coefficients and the value of an independent variable
      * @param terms
      * @param x
      * @returns {number}
      */
-    fn predictY(terms:Vec<f64>, x:f64)->f64{
+    fn predictY(terms: Vec<f64>, x: f64) -> f64 {
         /*
         let result = 0;
         for (let i = terms.length - 1; i >= 0; i--) {
